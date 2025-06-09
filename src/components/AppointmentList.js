@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -9,14 +9,33 @@ import {
   Paper,
   Button,
   Typography,
+  TablePagination,
 } from '@mui/material';
 
 const AppointmentList = ({ appointments, onEdit, onDelete }) => {
-  
+  const [page, setPage] = useState(0);
+  const rowsPerPage = 10;
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
 
   if (appointments.length === 0) {
     return <Typography variant="body1">No appointments yet.</Typography>;
   }
+
+  const fields = [
+    { key: 'name', label: 'Name' },
+    { key: 'email', label: 'Email' },
+    { key: 'phone', label: 'Phone' },
+    { key: 'dateTime', label: 'Date & Time' },
+    { key: 'description', label: 'Description' },
+  ];
+
+  const paginatedAppointments = appointments.slice(
+    page * rowsPerPage,
+    page * rowsPerPage + rowsPerPage
+  );
 
   return (
     <TableContainer component={Paper} sx={{ mt: 4 }}>
@@ -26,24 +45,23 @@ const AppointmentList = ({ appointments, onEdit, onDelete }) => {
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Phone</TableCell>
-            <TableCell>Date & Time</TableCell>
-            <TableCell>Description</TableCell>
+            {fields.map((field) => (
+              <TableCell key={field.key}>{field.label}</TableCell>
+            ))}
             <TableCell align="center">Actions</TableCell>
           </TableRow>
         </TableHead>
+
         <TableBody>
-          {appointments.map((appt) => (
+          {paginatedAppointments.map((appt) => (
             <TableRow key={appt.id}>
-              <TableCell>{appt.name}</TableCell>
-              <TableCell>{appt.email}</TableCell>
-              <TableCell>{appt.phone}</TableCell>
-              <TableCell>
-                {new Date(appt.dateTime).toLocaleString()}
-              </TableCell>
-              <TableCell>{appt.description || '—'}</TableCell>
+              {fields.map((field) => (
+                <TableCell key={field.key}>
+                  {field.key === 'dateTime'
+                    ? new Date(appt[field.key]).toLocaleString()
+                    : appt[field.key] || '—'}
+                </TableCell>
+              ))}
               <TableCell align="center">
                 <Button
                   variant="outlined"
@@ -67,6 +85,14 @@ const AppointmentList = ({ appointments, onEdit, onDelete }) => {
           ))}
         </TableBody>
       </Table>
+      <TablePagination
+        component="div"
+        count={appointments.length}
+        page={page}
+        onPageChange={handleChangePage}
+        rowsPerPage={rowsPerPage}
+        rowsPerPageOptions={[rowsPerPage]}
+      />
     </TableContainer>
   );
 };

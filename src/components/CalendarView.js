@@ -23,11 +23,13 @@ const localizer = dateFnsLocalizer({
 });
 
 const CalendarView = ({ appointments, onSelectAppointment }) => {
+  const now = new Date();
+
   const events = appointments.map((appt) => ({
     id: appt.id,
     title: `${appt.name} - ${appt.description || 'Appointment'}`,
     start: new Date(appt.dateTime),
-    end: new Date(appt.dateTime), 
+    end: new Date(appt.dateTime),
     allDay: false,
     resource: appt,
   }));
@@ -39,7 +41,30 @@ const CalendarView = ({ appointments, onSelectAppointment }) => {
         events={events}
         startAccessor="start"
         endAccessor="end"
-        onSelectEvent={(event) => onSelectAppointment(event.resource)}
+        onSelectEvent={(event) => {
+          if (new Date(event.start) < now) {
+            alert('Cannot select past appointments.');
+            return;
+          }
+          onSelectAppointment(event.resource);
+        }}
+        selectable
+        onSelectSlot={(slotInfo) => {
+          if (new Date(slotInfo.start) < now) {
+            alert('Cannot create appointments in the past.');
+            return;
+          }
+        }}
+        dayPropGetter={(date) => {
+          const isPast = date < new Date().setHours(0, 0, 0, 0);
+          return {
+            style: {
+              backgroundColor: isPast ? '#f0f0f0' : 'white',
+              color: isPast ? '#999' : 'black',
+              pointerEvents: isPast ? 'none' : 'auto',
+            },
+          };
+        }}
         style={{ height: '100%' }}
       />
     </div>
